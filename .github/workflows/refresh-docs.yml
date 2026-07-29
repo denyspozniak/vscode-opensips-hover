@@ -1,0 +1,65 @@
+name: refresh-docs
+
+# Keeps src/generated/*.json in sync with the OpenSIPS docs in git.
+# Weekly cron + manual run. Opens a PR only when the JSON actually changed.
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'OpenSIPS branch or tag to generate from (e.g. master, 3.6)'
+        required: false
+        default: 'master'
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    # needed by create-pull-request; the repo also has to allow Actions to open
+    # PRs (Settings > Actions > General > Workflow permissions), which no
+    # workflow-level grant can substitute for
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate tooltips
+        env:
+          OPENSIPS_REF: ${{ inputs.ref || 'master' }}
+        run: |
+          python3 generator.py
+          cp tmp/out/core.json tmp/out/modules.json src/generated/
+
+      - name: Sanity-check the generated data
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          core = json.load(open('src/generated/core.json'))
+          mods = json.load(open('src/generated/modules.json'))
+          # guard against a docs restructure silently emptying the tooltips
+          floors = {'modules': (mods, 150), 'core.parameters': (core['parameters'], 80),
+                    'core.functions': (core['functions'], 50),
+                    'core.transformations': (core['transformations'], 70),
+                    'core.pseudovariables': (core['pseudovariables'], 120)}
+          for name, (bag, floor) in floors.items():
+              if len(bag) < floor:
+                  sys.exit(f'{name}: {len(bag)} entries, expected >= {floor}')
+          if not mods.get('dialog', {}).get('parameters', {}).get('hash_size'):
+              sys.exit('dialog/hash_size missing -- parser broke')
+          print('ok')
+          PY
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'docs: refresh tooltips from OpenSIPS ${{ inputs.ref || ''master'' }}'
+          branch: chore/refresh-docs
+          title: 'Refresh tooltips from OpenSIPS ${{ inputs.ref || ''master'' }}'
+          body: |
+            Regenerated `src/generated/*.json` from the OpenSIPS docs in git.
+            Review the diff, then bump `version` in `package.json` and tag to publish.
+          add-paths: src/generated
