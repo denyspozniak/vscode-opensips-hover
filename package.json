@@ -1,0 +1,75 @@
+{
+  "name": "opensips-hover",
+  "displayName": "OpenSIPS Hover",
+  "description": "Displays documentation on keywords in OpenSIPS configuration",
+  "version": "0.1.0",
+  "publisher": "denyspozniak",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "opensips",
+    "sip",
+    "voip"
+  ],
+  "pricing": "Free",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denyspozniak/vscode-opensips-hover.git"
+  },
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "opensips",
+        "aliases": [
+          "OpenSIPS",
+          "opensips"
+        ],
+        "extensions": [
+          ".cfg",
+          ".inc",
+          ".cfg.j2"
+        ],
+        "filenames": [
+          "opensips.cfg"
+        ],
+        "firstLine": "^#!OPENSIPS",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "title": "OpenSIPS Hover",
+      "properties": {
+        "opensipsHover.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show documentation tooltips in OpenSIPS configuration files."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "generate": "python3 generator.py && cp tmp/out/*.json src/generated/",
+    "compile": "tsc -p ./",
+    "coverage": "node tools/coverage.js",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package",
+    "publish:vsce": "vsce publish",
+    "publish:ovsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "^1.87.0",
+    "@vscode/vsce": "^3.2.0",
+    "ovsx": "^0.10.0",
+    "typescript": "^5.3.3"
+  }
+}

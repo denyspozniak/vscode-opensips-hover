@@ -1,0 +1,16 @@
+.vscode/**
+.github/**
+src/**
+tmp/**
+generator.py
+tsconfig.json
+**/*.map
+**/*.ts
+node_modules/**
+.gitignore
+.npmrc
+package-lock.json
+*.vsix
+CHANGELOG-dev.md
+docs/**
+tools/**
