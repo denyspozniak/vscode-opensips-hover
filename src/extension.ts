@@ -46,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const selector: vscode.DocumentSelector = [
 		{ language: 'opensips' },
 		{ scheme: 'file', pattern: '**/opensips*.cfg' },
+		{ scheme: 'file', pattern: '**/*opensips*/**/*.cfg' },
 	];
 
 	context.subscriptions.push(

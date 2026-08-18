@@ -50,12 +50,15 @@ Then open a config and hover something.
 Only OpenSIPS configs, deliberately:
 
 * `opensips.cfg`
-* anything matching `opensips*.cfg`
+* anything matching `opensips*.cfg` — `opensips-prod.cfg`, `opensips_test.cfg`, …
+* any `.cfg` anywhere below a directory with `opensips` in its name — so
+  `/etc/opensips/routing.cfg`, `/etc/opensips-prod/dispatcher.cfg` and
+  `/srv/my-opensips/conf/routing.d/nat.cfg` are all covered
 * any file whose first line is `#!OPENSIPS`
 
-A bare `.cfg` is left alone, so nothing is taken away from Kamailio extensions
-or anything else using that suffix. If your config lives under a different name,
-pin it per workspace:
+A bare `.cfg` elsewhere is left alone, so nothing is taken away from Kamailio
+extensions or anything else using that suffix. If your config lives outside all
+of the above, pin it per workspace:
 
 ```json
 {

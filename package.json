@@ -37,7 +37,8 @@
           "opensips.cfg"
         ],
         "filenamePatterns": [
-          "**/opensips*.cfg"
+          "**/opensips*.cfg",
+          "**/*opensips*/**/*.cfg"
         ],
         "firstLine": "^#!OPENSIPS",
         "configuration": "./language-configuration.json"

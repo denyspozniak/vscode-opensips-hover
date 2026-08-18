@@ -87,12 +87,16 @@ Parser notes, all of them things the docs actually do:
 ## Document selector
 
 `package.json` claims the language id narrowly — `opensips.cfg`, the
-`opensips*.cfg` pattern, and the `#!OPENSIPS` shebang — so a bare `.cfg` is
-never hijacked.
+`**/opensips*.cfg` and `**/*opensips*/**/*.cfg` patterns, and the `#!OPENSIPS`
+shebang — so a bare `.cfg` is never hijacked. `filenamePatterns` globs match the
+whole path, which is what makes the directory rule possible: any directory with
+`opensips` in its name, at any depth, brings every `.cfg` below it along. That
+covers the `/etc/opensips/*.cfg` layout, where the individual files carry no
+distinguishing name, as well as variants like `/etc/opensips-prod/`.
 
-`src/extension.ts` additionally registers the hover provider for the glob
-`**/opensips*.cfg`, so tooltips still work when the language id resolves to
-something else (for instance when a Kamailio extension wins the association).
+`src/extension.ts` registers the hover provider for the same two globs, so
+tooltips still work when the language id resolves to something else (for
+instance when a Kamailio extension wins the association).
 
 ## Register and publish
 
