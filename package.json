@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "denyspozniak",
   "license": "MIT",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.87.0"
   },
