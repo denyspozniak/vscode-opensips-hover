@@ -33,13 +33,11 @@
           "OpenSIPS",
           "opensips"
         ],
-        "extensions": [
-          ".cfg",
-          ".inc",
-          ".cfg.j2"
-        ],
         "filenames": [
           "opensips.cfg"
+        ],
+        "filenamePatterns": [
+          "**/opensips*.cfg"
         ],
         "firstLine": "^#!OPENSIPS",
         "configuration": "./language-configuration.json"

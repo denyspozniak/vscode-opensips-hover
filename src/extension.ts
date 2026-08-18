@@ -41,13 +41,11 @@ function index(pick: (m: Module) => Bag): Map<string, string[]> {
 
 export function activate(context: vscode.ExtensionContext) {
 	// 'opensips' is the same language id tommybrecher.vscode-opensips uses for
-	// syntax highlighting, so the two compose. The globs are the fallback for
+	// syntax highlighting, so the two compose. The glob is the fallback for
 	// workspaces where .cfg got claimed by kamailio-hover instead.
 	const selector: vscode.DocumentSelector = [
 		{ language: 'opensips' },
 		{ scheme: 'file', pattern: '**/opensips*.cfg' },
-		{ scheme: 'file', pattern: '**/opensips*.cfg.j2' },
-		{ scheme: 'file', pattern: '**/*.opensips' },
 	];
 
 	context.subscriptions.push(
