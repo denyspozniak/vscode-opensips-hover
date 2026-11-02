@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.3
+
+  * tooltips refreshed from OpenSIPS master: new core parameters
+    `log_ratelimit_period`, `pi_framework`, `worker_reactor_timeout`,
+    `REACTOR_DBG_FD_CHECK`, the `$json_false` variable and the `i.bool`,
+    `ip.resolve4`, `ip.resolve6` transformations
+  * links between doc pages open docs.opensips.org instead of dead
+    repo-relative `.md` paths
+
 ## 0.2.2
 
   * no functional changes — the changelog shipped inside 0.2.0 and 0.2.1 still
