@@ -13,6 +13,7 @@ Sources (single git repo):
 import json
 import logging
 import os
+import posixpath
 import re
 import shutil
 import sys
@@ -108,10 +109,46 @@ class Path:
         return [h for h in self.heads[1:self.level] if h]
 
 
-def render(title, blocks, lang_fix=True):
+# Upstream docs link between pages with repo-relative paths (`./Script-CoreVar.md`,
+# `../dialog/README.md`), which are dead inside a hover. Map them to the published
+# site. Anchors are kept as-is: the site's ids often differ from GitHub's heading
+# slugs, and an unknown fragment just opens the top of the right page.
+DOCS_SITE = "https://docs.opensips.org/manual/%s/"
+REL_LINK_RE = re.compile(r"\]\((?!#|[a-z][a-z0-9+.-]*:)([^)\s#]+)(#[^)\s]*)?\)")
+
+
+def docs_version(ref):
+    """'master' -> 'devel', '3.6' / '3.6.2' -> '3-6'."""
+    m = re.match(r"(\d+)\.(\d+)", ref)
+    return "%s-%s" % m.groups() if m else "devel"
+
+
+def absolutize(md, src):
+    """Rewrite repo-relative links in md; src is the repo-relative source file."""
+    base = DOCS_SITE % docs_version(ref)
+
+    def repl(m):
+        target, anchor = m.group(1), m.group(2) or ""
+        path = posixpath.normpath(posixpath.join(posixpath.dirname(src), target))
+        parts = path.split("/")
+        if len(parts) == 3 and parts[:2] == ["docs", "manual"] and parts[2].endswith(".md"):
+            url = base + parts[2][:-3].lower() + "/"
+        elif len(parts) in (2, 3) and parts[0] in ("modules", "net") and \
+                parts[2:] in ([], ["README.md"]):
+            url = base + "modules/" + parts[1] + "/"
+        else:
+            return m.group(0)        # not a doc page (e.g. `[...](string)`)
+        return "](%s%s)" % (url, anchor)
+
+    return REL_LINK_RE.sub(repl, md)
+
+
+def render(title, blocks, lang_fix=True, src=None):
     """Blocks -> markdown string for the hover popup."""
     md = "### %s\n" % title + "\n".join(t[1] for t in blocks)
     md = re.sub(r"\n{3,}", "\n\n", md).strip() + "\n"
+    if src:
+        md = absolutize(md, src)
     if lang_fix:
         # ```opensips title="..."  ->  ```c   (VSCode has no `opensips` grammar
         # for markdown hovers; `c` gives usable highlighting)
@@ -186,7 +223,7 @@ NAMER = {
 }
 
 
-def extract_module(path, mod):
+def extract_module(path, mod, src):
     data = {"overview": "", "parameters": {}, "functions": {},
             "pseudovariables": {}, "mi": {}, "statistics": {}, "events": {}}
     p = Path()
@@ -196,7 +233,7 @@ def extract_module(path, mod):
     def flush():
         if bucket and title:
             for n in NAMER[bucket](title):
-                data[bucket][n] = render(title, acc)
+                data[bucket][n] = render(title, acc, src=src)
 
     for block in parse_md(path):
         if block[0] == "heading":
@@ -223,7 +260,7 @@ def extract_module(path, mod):
                 acc.append(block)
     flush()
 
-    data["overview"] = render(mod, overview).split("\n", 1)[1].strip() + "\n" if overview else ""
+    data["overview"] = render(mod, overview, src=src).split("\n", 1)[1].strip() + "\n" if overview else ""
     return data
 
 
@@ -243,7 +280,7 @@ def extract_core(docdir):
         def flush():
             if title:
                 for n in namer(title):
-                    core[bucket][n] = render(title, acc)
+                    core[bucket][n] = render(title, acc, src="docs/manual/" + fname)
 
         for block in parse_md(path):
             if block[0] == "heading":
@@ -324,7 +361,8 @@ if __name__ == "__main__":
         if not os.path.isfile(readme):
             log.warning("no README.md for module %s", mod)
             continue
-        modules[mod] = extract_module(readme, mod)
+        modules[mod] = extract_module(readme, mod,
+                                      os.path.relpath(readme, srcdir))
 
     core = extract_core(docdir)
     apply_legacy_params(core)
